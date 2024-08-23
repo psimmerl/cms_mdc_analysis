@@ -13,3 +13,11 @@ tar -cvzf mds_run3_data.tar.xz \
     $data_dir/data_2023_goodLumi.root
 
 echo "done"
+
+
+# scp psimmerl@lxplus.cern.ch:/eos/user/f/fernanpe/displacedJetMuonAnalyzer_CA0p6_noMerging_240310_CSCOnly_DNNs/V1p19/hadd/mc.root mc_2022.root
+# scp psimmerl@lxplus.cern.ch:/eos/user/f/fernanpe/displacedJetMuonAnalyzer_CA0p6_noMerging_240310_CSCOnly_DNNs/V1p19/hadd/mc_2023.root mc_2023.root
+# scp psimmerl@lxplus.cern.ch:/eos/user/f/fernanpe/displacedJetMuonAnalyzer_CA0p6_noMerging_240310_CSCOnly_DNNs/V1p19/hadd/data_2022.root data_2022.root
+# scp psimmerl@lxplus.cern.ch:/eos/user/f/fernanpe/displacedJetMuonAnalyzer_CA0p6_noMerging_240310_CSCOnly_DNNs/V1p19/hadd/data_2023.root data_2023.root
+# scp psimmerl@lxplus.cern.ch:/eos/user/f/fernanpe/displacedJetMuonAnalyzer_CA0p6_noMerging_240310_CSCOnly_DNNs/V1p19/hadd/data_2022_goodLumi.root data_2022_goodLumi.root
+# scp psimmerl@lxplus.cern.ch:/eos/user/f/fernanpe/displacedJetMuonAnalyzer_CA0p6_noMerging_240310_CSCOnly_DNNs/V1p19/hadd/data_2023_goodLumi.root data_2023_goodLumi.root
