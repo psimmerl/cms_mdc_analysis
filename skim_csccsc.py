@@ -18,8 +18,8 @@ RUN2_BR = 2.16e-03  # Adjust weights to Run 2 BR limit
 YEAR = "2023"
 
 NODENAME = os.uname().nodename
-if "fernanpe" in NODENAME:
-    LOCAL_DIR = "/eos/user/f/fernanpe/mds_analysis/"
+if "lxplus" in NODENAME:
+    LOCAL_DIR = "/eos/user/f/fernanpe/mds_analysis_Christina/"
     FN_MC = f"{LOCAL_DIR}/data/processed/mc_pedro_hlt566_2023.root"
     FN_R3 = f"{LOCAL_DIR}/data/processed/r3_pedro_hlt566_2023.root"
 elif "psimmerl-LAU248" in NODENAME:
@@ -721,15 +721,15 @@ if __name__ == "__main__":
     #     CUTS = [c for c in CUTS if "DT size" not in c]
 
     #if "DNN" not in CUTSET:
-    if "dnn" not in args.lower(): # note this isnt a whole word match
-        print("    Removing DNN from CUTS")
-        CUTS = [c for c in CUTS if "DNN" not in c]
-        OPT_CUTS = [c for c in OPT_CUTS if "DNN" not in c]
-        DNN_VERSION = None
-    else:
-        if RAND or LOO:
-            print("        OPTIMIZING JUST DNN")
-            OPT_CUTS = [c for c in OPT_CUTS if "DNN" in c]
+    # if "dnn" not in args.lower(): # note this isnt a whole word match
+    #     print("    Removing DNN from CUTS")
+    #     CUTS = [c for c in CUTS if "DNN" not in c]
+    #     OPT_CUTS = [c for c in OPT_CUTS if "DNN" not in c]
+    #     DNN_VERSION = None
+    # else:
+    #     if RAND or LOO:
+    #         print("        OPTIMIZING JUST DNN")
+    #         OPT_CUTS = [c for c in OPT_CUTS if "DNN" in c]
 
     if " bkgMC_plusBeamHalo " in args:
         print("    Using DNN version bkgMC_plusBeamHalo")
@@ -891,6 +891,36 @@ if __name__ == "__main__":
         if iopt == 0:
             print("", flush=True)
 
+
+        if " n-1 " in args.lower():
+            h_list = []
+            
+            # Other variables apart from the ones built in rdf (listed here) can be filled.
+            # use print(rdf.GetColumnNames()) to get the list of variables that can be plotted. Input variables like cscRechitCluster_X are accesible.
+            variables = {
+                "met": [20, 0, 200],
+                "tag_dPhi": [20, 0, 3.5],
+                "tag_dR": [20, 0, 5],
+                "csc0Met_dPhi": [20, 0, 3.5],
+                "csc0Phi": [20, -3.2, 3.2],
+                "csc1Phi": [20, -3.2, 3.2],
+                "csc0Eta": [20, -2.4, 2.4],
+                "csc1Eta": [20, -2.4, 2.4],
+                "csc0Size": [20, 50, 800],
+                "csc1Size": [20, 50, 800],
+                "csc0JetVetoPt": [20, 10, 200],
+                "csc1JetVetoPt": [20, 10, 200],
+                "csc0MuonVetoPt": [20, 10, 200],
+                "csc1MuonVetoPt": [20, 10, 200],
+                "csc0TimeSpread": [20, 0, 80],
+                "csc1TimeSpread": [20, 0, 80],
+                "csc0NStation10": [5, 0, 5],
+                "csc1NStation10": [5, 0, 5],
+                "csc0DNN_bkgMC_plusBeamHalo": [20, 0, 1],
+                "csc1DNN_bkgMC_plusBeamHalo": [20, 0, 1],
+                }
+            
+            
         # **************** #
         for key, rdf in rdfs.items():
             if PRINT_CUTFLOW:
@@ -950,6 +980,14 @@ if __name__ == "__main__":
                     elif "r3" in key:
                         continue
 
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"acceptance_{var}_{key}",f"acceptance_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
                 # **** #
                 # Trigger selections (HLT may be wrong in MC?)
                 if "HLT" in cut:
@@ -962,6 +1000,14 @@ if __name__ == "__main__":
                         rdf = rdf.Redefine("evtCutFlag", "evtCutFlag && HLTDecision[566]")
                     else:
                         continue
+
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"HLT_{var}_{key}",f"HLT_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
 
                 if "L1" in cut: # First passes, second fails
                     #fmt: off
@@ -1032,9 +1078,30 @@ if __name__ == "__main__":
                     # )
                     #fmt: on
 
+
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"L1_{var}_{key}",f"L1_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+                                
+
+
+
                 if "CSC0 largest" in cut:
                     rdf = rdf.Redefine(f"{C}0CutFlag", f"{C}0CutFlag && ( {C}0Size == Max({C}Size*{C}0Flag) )")
                     rdf = rdf.Redefine(f"{C}1CutFlag", f"{C}1CutFlag && !{C}0CutFlag")
+
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"CSC0_largest_{var}_{key}",f"CSC0_largest_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
                 # if "CSC1 not CSC0" in cut:
                 #     rdf = rdf.Redefine(f"{C}1CutFlag", f"{C}0CutFlag && ( {C}0Size == Max({C}Size*{C}0CutFlag) )")
 
@@ -1045,12 +1112,40 @@ if __name__ == "__main__":
                 if "MET" in cut:
                     rdf = rdf.Redefine("evtCutFlag", f"evtCutFlag && (met < 200)")
 
+
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"MET_{var}_{key}",f"MET_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
+                    
                 if "low MET" in cut:
                     rdf = rdf.Redefine("evtCutFlag", f"evtCutFlag && (met < {LOW_MET_CUTOFF})")
 
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"low_MET_{var}_{key}",f"low_MET_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
+                    
                 if "high MET" in cut:
                     rdf = rdf.Redefine("evtCutFlag", f"evtCutFlag && (({HIGH_MET_CUTOFF} < met) && (met < 200))")
 
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"high_MET_{var}_{key}",f"high_MET_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
+                    
                 # **** #
                 # Cluster time requirements
                 if "CSC" in cut and "IT" in cut:
@@ -1060,19 +1155,44 @@ if __name__ == "__main__":
                             + f"({C}TimeWeighted < {MAX_CSC_TIME}) && "
                             +f"({C}TimeSpreadWeightedAll < {MAX_CSC_TSPREAD}) )"
                         )
+                        if " n-1 " in args.lower():
+                            for var in list(variables.keys()):
+                                if var not in list(rdf.GetColumnNames()):
+                                    continue
+                                else:
+                                    h = rdf.Histo1D((f"CSC0_IT_{var}_{key}",f"CSC0_IT_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                    h_list.append(h)
+
                     if "CSC1" in cut or ("0" not in cut and "1" not in cut):
                         rdf = rdf.Redefine(f"{C}1CutFlag", f"{C}1CutFlag && ( "
                             + f"({MIN_CSC_TIME} < {C}TimeWeighted) && "
                             + f"({C}TimeWeighted < {MAX_CSC_TIME}) && "
                             +f"({C}TimeSpreadWeightedAll < {MAX_CSC_TSPREAD}) )"
                         )
-                
+                        if " n-1 " in args.lower():
+                            for var in list(variables.keys()):
+                                if var not in list(rdf.GetColumnNames()):
+                                    continue
+                                else:
+                                    h = rdf.Histo1D((f"CSC1_IT_{var}_{key}",f"CSC1_IT_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                    h_list.append(h)
+
+
                 if "CSC0 OOT" in cut:
                     rdf = rdf.Redefine(f"{C}0CutFlag", f"{C}0CutFlag && !( "
                         + f"({MIN_CSC_TIME} < {C}TimeWeighted) && "
                         + f"({C}TimeWeighted < {MAX_CSC_TIME}) && "
                         +f"({C}TimeSpreadWeightedAll < {MAX_CSC_TSPREAD}) )"
                     )
+
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"CSC0_OOT_{var}_{key}",f"CSC0_OOT_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
                 if "CSC1 OOT" in cut:
                     rdf = rdf.Redefine(f"{C}1CutFlag", f"{C}1CutFlag && !( "
                         + f"({MIN_CSC_TIME} < {C}TimeWeighted) && "
@@ -1080,16 +1200,43 @@ if __name__ == "__main__":
                         +f"({C}TimeSpreadWeightedAll < {MAX_CSC_TSPREAD}) )"
                     )
 
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"CSC1_OOT_{var}_{key}",f"CSC1_OOT_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
+
                 if "DT IT" in cut:
                     rdf = rdf.Redefine(f"{D}CutFlag", f"{D}CutFlag && ( "
                         + f"(abs({D}_match_RPCBx_dPhi0p5) <= {MAX_RPC_BX}) && "
                         + f"({D}_match_RPChits_dPhi0p5 >= {MIN_RPC_HITS}) )"
                     )
+
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"DT_IT_{var}_{key}",f"DT_IT_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
                 elif "DT OOT" in cut:
                     rdf = rdf.Redefine(f"{D}CutFlag", f"{D}CutFlag && !( "
                         + f"(abs({D}_match_RPCBx_dPhi0p5) <= {MAX_RPC_BX}) && "
                         + f"({D}_match_RPChits_dPhi0p5 >= {MIN_RPC_HITS}) )"
                     )
+
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"DT_OOT_{var}_{key}",f"DT_OOT_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
 
                 # **** #
                 # Station requirements from L1 trigger
@@ -1107,9 +1254,26 @@ if __name__ == "__main__":
                     #                 f"({C}NRechitChamberMinus11 <= {MAX_ME1}) &&"+
                     #                 f"({C}NRechitChamberMinus12 <= {MAX_ME1}) )")
 
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"ME1_{var}_{key}",f"ME1_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
+                    
                 if "MB1" in cut: # and OPT_CUT != "MB1":
                     # No HLT MB1 requirement when using HLT='CscCluster_Loose'
                     rdf = rdf.Redefine(f"{D}CutFlag", f"{D}CutFlag && ( {D}NHitStation1 <= {MAX_MB1} )")
+
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"MB1_{var}_{key}",f"MB1_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
 
                 if "DT stn" in cut:
                     rdf = rdf.Redefine(f"{D}CutFlag", f"{D}CutFlag && ( "
@@ -1117,20 +1281,55 @@ if __name__ == "__main__":
                         + f"!(({D}NStation10 == 2) && ({D}MaxStation == 4)) )"
                     )
 
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"DT_stn_{var}_{key}",f"DT_stn_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
+
                 # **** #
                 if "CSC jet req" in cut:
                     rdf = rdf.Redefine("evtCutFlag",
                     f"auto passJetMatch = ({C}0Flag || {C}1Flag) && ({C}JetVetoPt >= {MAX_CSC_JET});"
                     f"return evtFlag && (reduce(passJetMatch.begin(), passJetMatch.end()) > 0)")
 
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"CSC_jet_req_{var}_{key}",f"CSC_jet_req_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
                 if "CSC jet veto" in cut: # and OPT_CUT != "CSC jet veto":
                     if "$<$" in cut:
                         MAX_CSC_JET = float(cut.split(" ")[-1])
                     rdf = rdf.Redefine(f"{C}0CutFlag", f"{C}0CutFlag && ({C}JetVetoPt < {MAX_CSC_JET})")
                     rdf = rdf.Redefine(f"{C}1CutFlag", f"{C}1CutFlag && ({C}JetVetoPt < {MAX_CSC_JET})")
+
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"CSC_jet_veto_{var}_{key}",f"CSC_jet_veto_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
                 if "DT jet veto" in cut: # and OPT_CUT != "DT jet veto":
                     rdf = rdf.Redefine(f"{D}CutFlag", f"{D}CutFlag && ({D}JetVetoPt < {MAX_DT_JET})")
 
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"DT_jet_veto_{var}_{key}",f"DT_jet_veto_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
+                    
                 if "CSC muon veto" in cut: # and OPT_CUT != "CSC muon veto":
                     # rdf = rdf.Redefine(f"{C}0CutFlag", f"{C}0CutFlag && ({C}MuonVetoPt < {abs(MAX_CSC_MUON)})")
                     # rdf = rdf.Redefine(f"{C}1CutFlag", f"{C}1CutFlag && ({C}MuonVetoPt < {abs(MAX_CSC_MUON)})")
@@ -1140,17 +1339,42 @@ if __name__ == "__main__":
                     rdf = rdf.Redefine(f"{C}1CutFlag", f"{C}1CutFlag && "
                         + f"!( !({C}MuonVetoGlobal == 0) && !({C}MuonVetoPt < {MAX_CSC_MUON}) )"
                     )
+
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"CSC_muon_veto_{var}_{key}",f"CSC_muon_veto_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
                 if "DT muon veto" in cut: # and OPT_CUT != "DT muon veto":
                     # rdf = rdf.Redefine(f"{D}CutFlag", f"{D}CutFlag && ({D}MuonVetoPt < {abs(MAX_DT_MUON)})")
                     rdf = rdf.Redefine(f"{D}CutFlag", f"{D}CutFlag && "
                         + f"!( !({D}MuonVetoLooseId == 0) && !({D}MuonVetoPt < {MAX_DT_MUON}) )"
                     )
 
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"DT_muon_veto_{var}_{key}",f"DT_muon_veto_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
                 if "halo veto" in cut: # and OPT_CUT != "halo veto":
                     rdf = rdf.Redefine(f"{D}CutFlag", f"{D}CutFlag && "
                         + f"({HALO_CUTOFF} < abs({D}Phi)) && "
                         + f"(abs({D}Phi) < {PI} - {HALO_CUTOFF})"
                     )
+
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"halo_veto_{var}_{key}",f"halo_veto_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
 
                 # **** #
                 if "BDT" in cut:
@@ -1163,20 +1387,65 @@ if __name__ == "__main__":
                     rdf = rdf.Redefine(f"{C}1CutFlag", f"{C}1CutFlag && "
                         + f"( Take({C}DNN_{DNN_VERSION},nCscRechitClusters) > {MIN_CSC_DNN} )"
                     )
+                    
+
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"DNN_$>$_{var}_{key}",f"DNN_$>$_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
                 if "DNN $<$" in cut: 
                     rdf = rdf.Redefine("evtCutFlag",
                     f"auto invertDNN = ({C}0Flag || {C}1Flag) && (Take({C}DNN_{DNN_VERSION},nCscRechitClusters) <= {MIN_CSC_DNN});"
                     f"return evtFlag && (reduce(invertDNN.begin(), invertDNN.end()) > 0)")
+
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"DNN_$<$_{var}_{key}",f"DNN_$<$_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
                 # **** #
                 if "0 DT" in cut:
                     # rdf = rdf.Redefine("evtCutFlag", f"evtCutFlag && (reduce({D}Flag.begin(), {D}Flag.end()) == 0)")
                     rdf = rdf.Redefine("evtCutFlag", "evtCutFlag && (nDtRechitClusters == 0)")
+
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"0_DT_{var}_{key}",f"0_DT_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
                 if "2 CSC" in cut:
                     rdf = rdf.Redefine("evtCutFlag", "evtCutFlag && (nCscRechitClusters == 2)")
+
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"2_CSC_{var}_{key}",f"2_CSC_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
         
                 if "1 CSC-CSC" in cut:
                     if "Exactly" in cut:
                         rdf = rdf.Redefine("evtCutFlag", "evtCutFlag && (nCscRechitClusters == 2)")
+
+                        if " n-1 " in args.lower():
+                            for var in list(variables.keys()):
+                                if var not in list(rdf.GetColumnNames()):
+                                    continue
+                                else:
+                                    h = rdf.Histo1D((f"Exactly_1_CSC-CSC_{var}_{key}",f"Exactly_1_CSC-CSC_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                    h_list.append(h)
 
                     # rdf = rdf.Redefine("evtCutFlag", f"evtCutFlag && evtFlag && "+
                     #                    f"(reduce({C}0Flag.begin(), {C}0Flag.end()) == 1) && "+
@@ -1242,6 +1511,14 @@ if __name__ == "__main__":
                         ]
                     )
 
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"1_CSC-CSC_{var}_{key}",f"1_CSC_CSC_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
                 # **** #
                 if "dR" in cut:
                     raise NotImplementedError("dR")
@@ -1255,8 +1532,24 @@ if __name__ == "__main__":
                     # if OPT_CUT != "max dEta":
                     rdf = rdf.Redefine("evtCutFlag", f"evtCutFlag && (tag_dEta < {MAX_DETA})")
 
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"dEta_{var}_{key}",f"dEta_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
+
                 if "dPhi" in cut: # and # OPT_CUT != "min dPhi":
                     rdf = rdf.Redefine("evtCutFlag", f"evtCutFlag && (tag_dPhi > {MIN_DPHI})")
+
+                    if " n-1 " in args.lower():
+                        for var in list(variables.keys()):
+                            if var not in list(rdf.GetColumnNames()):
+                                continue
+                            else:
+                                h = rdf.Histo1D((f"dPhi_{var}_{key}",f"dPhi_{var}_{key}",variables[var][0], variables[var][1], variables[var][2]),f"{var}")
+                                h_list.append(h)
 
                 # **** #
                 # Propagate to cumulative flags
@@ -1530,3 +1823,48 @@ if __name__ == "__main__":
         canvas.Print(f"{OUT_DIR}/{hname_pre}_{xx}.png")
 
     print("", flush=True)
+
+    
+    if " n-1 " in args.lower():
+        rt.gStyle.SetOptStat(0)
+        for c in CUTS:
+            c = c.replace(" ", "_")
+            for var in list(variables.keys()):
+                h_mc, h_data = None, None
+                for h in h_list:
+                    if((h.GetName().startswith(c + '_')) and ('_' + var + '_' in h.GetName()) and ('_mc' in h.GetName())):
+                        h_mc = h
+                        h_mc.SetLineColor(2)
+                        h_mc.SetLineWidth(2)
+                        h_mc.GetXaxis().SetTitle(var)
+                        # include the overflow bin
+                        h_mc.SetBinContent(h_mc.GetNbinsX(), h_mc.GetBinContent(h_mc.GetNbinsX()) + h_mc.GetBinContent(h_mc.GetNbinsX() + 1))
+                    elif((h.GetName().startswith(c + '_')) and ('_' + var + '_' in h.GetName()) and ('_r3' in h.GetName())):
+                        h_data = h
+                        h_data.SetLineWidth(2)
+                        # include the overflow bin
+                        h_data.SetBinContent(h_data.GetNbinsX(), h_data.GetBinContent(h_data.GetNbinsX()) + h_data.GetBinContent(h_data.GetNbinsX() + 1))
+
+                if((h_mc is not None) and (h_data is not None)):
+                    h_mc.Scale(1./h_mc.Integral())
+                    h_data.Scale(1./h_data.Integral())
+                    canvas = rt.TCanvas("","",800,800)
+                    canvas.cd()
+                    h_mc.Draw()
+                    h_data.Draw("same")
+                    leg = rt.TLegend(.7,.8,.85,.9)
+                    leg.SetBorderSize(0)
+                    leg.SetFillColor(0)
+                    leg.SetFillStyle(0)
+                    leg.SetTextFont(42)
+                    leg.SetTextSize(0.035)
+                    leg.AddEntry(h_mc.GetPtr(),"Signal MC","l")
+                    if OOT:
+                        leg.AddEntry(h_data.GetPtr(),"OOT DATA","l")
+                    else:
+                        leg.AddEntry(h_data.GetPtr(),"IT DATA","l")
+                    leg.Draw()
+                    canvas.Draw()
+                    c = c.replace('$','').replace('>', 'gt').replace('<','lt')
+                    canvas.Print(f"{OUT_DIR}/N_1_CUT_{c}_VAR_{var}.png")
+
